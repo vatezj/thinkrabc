@@ -1,0 +1,25 @@
+{
+    "name": "hualex/think-rabc",
+    "description": "think rabc for thinkphp6",
+    "require": {
+        "php": ">=7.1.0",
+        "topthink/framework": "^6.0.0"
+    },
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "hualex",
+            "email": "vate96@foxmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Hualex\\ThinkRabc\\": "src"
+        }
+    },
+   "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true
+    }
+}
