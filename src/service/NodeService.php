@@ -1,10 +1,64 @@
 <?php
 namespace Hualex\ThinkRabc\service;
+use Hualex\ThinkRabc\model\Auth;
 use Hualex\ThinkRabc\service\ToolsService;
 use think\facade\Config;
 use think\facade\Db;
 
 class NodeService{
+    /**
+     * @desc 重复节点删除
+     * @param $arr
+     * @param $key
+     * @return mixed
+     */
+    private static function assoc_title($arr, $key)
+    {
+        $tmp_arr = array();
+        foreach ($arr as $k => $v) {
+            if (in_array($v[$key], $tmp_arr)) {
+                unset($arr[$k]);
+            } else {
+                $tmp_arr[] = $v[$key];
+            }
+        }
+        return $arr;
+    }
+    /**
+     * @desc  获取当前管理员的权限
+     *
+     */
+    public static function getManagerNode($auth_id){
+        $list = Auth::with('roles')->where(['auth_id'=>$auth_id])->select();
+        $res = $list->hidden(["roles"=>["pivot"]])->toArray();
+        return self::assoc_title($res[0]['roles'],'node');
+    }
+    /**
+     * @desc 给管理员授权节点
+     * @param $auth_id
+     * @param $nodeArr
+     * @return mixed
+     */
+    public static function authorizeNode($auth_id,$nodeArr){
+        $save = [];
+        foreach ($nodeArr as $k=>$v){
+            $save[$k]['auth_id'] = $auth_id;
+            $save[$k]["node_id"] = $v;
+        }
+        $status = false;
+        Db::startTrans();
+        try {
+            Db::name('auth_node')->where(["auth_id"=>$auth_id])->delete();
+            Db::name('auth_node')->insertAll($save);
+            // 提交事务
+            Db::commit();
+            $status = true;
+        } catch (\Exception $e) {
+            // 回滚事务
+            Db::rollback();
+        }
+        return $status;
+    }
 
     /**
      * @desc 将节点数组转换成table数组
@@ -35,7 +89,7 @@ class NodeService{
             $path .= '/' . $module;
         }
         $where = [];
-        $alias = [];
+        $alias = Db::name('node')->where($where)->column('node,is_auth,title,id');
         $ignore = [];
         foreach (self::getNodeTree($path) as $thr) {
             foreach ($ignore as $str) {
@@ -50,6 +104,12 @@ class NodeService{
             $nodes[$thr] = array_merge(isset($alias[$thr]) ? $alias[$thr] : ['node' => $thr, 'title' => '','is_auth' => 0], ['pnode' => $two]);
         }
         foreach ($nodes as $key => &$node) {
+            $tmp = Db::name('node')->where(['node'=>$node['node']])->find();
+            if(!$tmp){
+                $save["node"] = $node['node'];
+                $save["create_at"] = date("Y-m-d H:i:s");
+                $node['id'] = Db::name('node')->insertGetId($save);
+            }
             $node['is_auth'] = intval($node['is_auth']);
         }
         return $nodes;

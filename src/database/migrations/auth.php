@@ -32,7 +32,9 @@ class  Auth extends  Migrator
         // create the table
         $table = $this->table('auth',array('engine'=>'InnoDB','id' => false, 'primary_key' => ['auth_id']));
         $table->addColumn('name', 'string',array('limit'  =>  15,'default'=>'','comment'=>'权限名称'))
-            ->addColumn('status', 'boolean',array('limit'  =>  1,'default'=>0,'comment'=>'状态(1:禁用,2:启用)'))
+            ->addColumn('status', 'boolean',array('limit'  =>  1,'default'=>0,'comment'=>'状态(0:禁用,1:启用)'))
+            ->addColumn('is_default', 'boolean',array('limit'  =>  1,'default'=>0,'comment'=>'状态(0:否,1:是)'))
+            ->addColumn('created_time', 'datetime')
             ->addColumn('created_time', 'datetime')
             ->addColumn('update_time', 'datetime')
             ->addColumn('delete_time', 'datetime')
