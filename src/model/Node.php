@@ -14,4 +14,5 @@ class Node extends Model{
         'is_auth'       => 'int',
         'create_time' => 'datetime'
     ];
+    protected $autoWriteTimestamp = true;
 }
